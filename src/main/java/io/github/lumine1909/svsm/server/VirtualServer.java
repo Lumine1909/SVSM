@@ -2,7 +2,8 @@ package io.github.lumine1909.svsm.server;
 
 import io.netty.handler.timeout.ReadTimeoutHandler;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.LockSupport;
@@ -44,7 +45,7 @@ public class VirtualServer {
             currTickNano = System.nanoTime();
             nextTickNano = currTickNano + NSPT;
             players.forEach(Player::keepAlive);
-            long curr =  System.nanoTime();
+            long curr = System.nanoTime();
             LockSupport.parkNanos(nextTickNano - curr);
         }
     }

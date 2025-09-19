@@ -32,22 +32,9 @@ public class Player {
     }
 
     private PlayerInfo info;
-
-    public PlayerInfo info() {
-        return info;
-    }
-
     private long prevKeepAlive = Util.getMillis();
 
     private Player() {
-    }
-
-    public void keepAlive() {
-        long curr = Util.getMillis();
-        if (curr - prevKeepAlive > KEEP_ALIVE_PERIOD) {
-            sendKeepAlivePacket();
-            prevKeepAlive = Util.getMillis();
-        }
     }
 
     public static Player createFromBukkit(org.bukkit.entity.Player bukkitPlayer) {
@@ -74,6 +61,18 @@ public class Player {
         VirtualServer.SERVER.playerConnect(player);
         channel.closeFuture().addListener(f -> player.handleDisconnect());
         return player;
+    }
+
+    public PlayerInfo info() {
+        return info;
+    }
+
+    public void keepAlive() {
+        long curr = Util.getMillis();
+        if (curr - prevKeepAlive > KEEP_ALIVE_PERIOD) {
+            sendKeepAlivePacket();
+            prevKeepAlive = Util.getMillis();
+        }
     }
 
     private void handleDisconnect() {
