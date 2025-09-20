@@ -64,7 +64,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "v${{ env.VERSION }}-build-${{ env.BUILD_NUMBER }}"
-          name: "Release v${{ env.VERSION }}-build-${{ env.BUILD_NUMBER }}"
+          name: "v${{ env.VERSION }}-build-${{ env.BUILD_NUMBER }}"
           files: ${{ steps.build.outputs.jar_file }}
           draft: false
           prerelease: false
