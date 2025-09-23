@@ -52,7 +52,7 @@ public class VirtualServer {
 
     public void playerDisconnect(Player player) {
         players.remove(player);
-        playerByName.put(player.info().name(), player);
+        playerByName.remove(player.info().name());
     }
 
     public void playerConnect(Player player) {
