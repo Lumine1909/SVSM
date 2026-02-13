@@ -54,7 +54,7 @@ public class Player {
         channel.pipeline().addBefore("decoder", "svsm_inbound_handler", new ChannelInboundHandlerAdapter() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                if (msg instanceof ByteBuf buf) {
+                if (msg instanceof ByteBuf buf && buf.isReadable()) {
                     if (VarInt.read(buf) == KEEP_ALIVE_IN && player.counter.get() != 0) {
                         player.counter.decrementAndGet();
                         return;
@@ -67,7 +67,7 @@ public class Player {
         channel.pipeline().addBefore("encoder", "svsm_outbound_handler", new ChannelOutboundHandlerAdapter() {
             @Override
             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                if (msg instanceof ByteBuf buf) {
+                if (msg instanceof ByteBuf buf && buf.isReadable()) {
                     if (VarInt.read(buf) == KEEP_ALIVE_OUT) {
                         player.prevKeepAlive = buf.readLong();
                     }
