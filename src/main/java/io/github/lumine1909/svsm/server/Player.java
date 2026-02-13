@@ -47,8 +47,11 @@ public class Player {
         ServerPlayer sp = ((CraftPlayer) bukkitPlayer).getHandle();
         Player player = new Player();
         Channel channel = sp.connection.connection.channel;
-        if (channel.pipeline().get("svsm_handler") != null) {
-            channel.pipeline().remove("svsm_handler");
+        if (channel.pipeline().get("svsm_inbound_handler") != null) {
+            channel.pipeline().remove("svsm_inbound_handler");
+        }
+        if (channel.pipeline().get("svsm_outbound_handler") != null) {
+            channel.pipeline().remove("svsm_outgbound_handler");
         }
         channel.pipeline().replace("timeout", "timeout", new ReadTimeoutHandler(Integer.MAX_VALUE));
         channel.pipeline().addBefore("decoder", "svsm_inbound_handler", new ChannelInboundHandlerAdapter() {
