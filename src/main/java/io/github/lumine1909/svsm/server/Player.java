@@ -92,7 +92,6 @@ public class Player {
         player.info = new PlayerInfo(sp.getScoreboardName(), sp.getUUID(), channel, channel.pipeline().context("svsm_outbound_handler"));
         VirtualServer.SERVER.playerConnect(player);
         channel.closeFuture().addListener(f -> player.handleDisconnect());
-        Bukkit.getScheduler().runTaskLater(plugin, () -> System.out.println(channel.pipeline()), 1);
         return player;
     }
 
