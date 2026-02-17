@@ -14,12 +14,9 @@ import net.minecraft.network.VarInt;
 import net.minecraft.network.protocol.common.CommonPacketTypes;
 import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.server.level.ServerPlayer;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import java.util.UUID;
-
-import static io.github.lumine1909.svsm.SVSMPlugin.plugin;
 
 public class Player {
 
@@ -108,7 +105,9 @@ public class Player {
     }
 
     private void handleDisconnect() {
-        VirtualServer.SERVER.playerDisconnect(this);
+        if (VirtualServer.SERVER != null) {
+            VirtualServer.SERVER.playerDisconnect(this);
+        }
     }
 
     private void sendKeepAlivePacket() {
