@@ -6,8 +6,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class SVSMPlugin extends JavaPlugin {
 
+    public static SVSMPlugin plugin;
+
     @Override
     public void onEnable() {
+        plugin = this;
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
         WatchdogHandler.disableWatchdog();
         VirtualServer.startServer();
