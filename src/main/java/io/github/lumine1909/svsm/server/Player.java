@@ -8,12 +8,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.papermc.paper.util.KeepAlive;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
-import net.minecraft.util.Util;
 import net.minecraft.network.VarInt;
 import net.minecraft.network.protocol.common.CommonPacketTypes;
 import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import net.minecraft.util.Util;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import java.util.UUID;
