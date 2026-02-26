@@ -1,6 +1,6 @@
 ### Server Vital Signal Maintainer
 
-Keep your server and server connections alive while using suspend IDEA breakpoint.
+Keeping your server and server connections alive while using suspend IDEA breakpoints.
 
-You have to make the breakpoint suspend "Thread" to make this plugin work correctly.
+You have to set the breakpoint suspend "Thread" to make this plugin work correctly.
 ![img.png](img.png)
