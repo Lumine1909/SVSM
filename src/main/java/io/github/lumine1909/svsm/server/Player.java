@@ -1,18 +1,13 @@
 package io.github.lumine1909.svsm.server;
 
-import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
-import io.github.lumine1909.reflexion.Field;
-import io.github.lumine1909.svsm.util.DummyQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.papermc.paper.util.KeepAlive;
 import net.minecraft.network.VarInt;
 import net.minecraft.network.protocol.common.CommonPacketTypes;
 import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.util.Util;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -23,10 +18,6 @@ public class Player {
     private static final long KEEP_ALIVE_PERIOD = 5000;
     private static final int KEEP_ALIVE_IN;
     private static final int KEEP_ALIVE_OUT;
-
-    private static final Field<KeepAlive> field$keepAlive = Field.of(ServerCommonPacketListenerImpl.class, "keepAlive");
-    @SuppressWarnings("rawtypes")
-    private static final Field<MultiThreadedQueue> field$pendingKeepAlives = Field.of(KeepAlive.class, "pendingKeepAlives");
 
     static {
         int[] id = {0, 0};
@@ -52,7 +43,6 @@ public class Player {
 
     public static Player createFromBukkit(org.bukkit.entity.Player bukkitPlayer) {
         ServerPlayer sp = ((CraftPlayer) bukkitPlayer).getHandle();
-        field$pendingKeepAlives.set(field$keepAlive.get(sp.connection), DummyQueue.INSTANCE);
         Player player = new Player();
         Channel channel = sp.connection.connection.channel;
         if (channel.pipeline().get("svsm_inbound_handler") != null) {
@@ -66,7 +56,7 @@ public class Player {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                 if (msg instanceof ByteBuf buf && buf.isReadable()) {
-                    if (VarInt.read(buf) == KEEP_ALIVE_IN) {
+                    if (VarInt.read(buf) == KEEP_ALIVE_IN && buf.readLong() == -1) {
                         return;
                     }
                     buf.readerIndex(0);
@@ -113,7 +103,7 @@ public class Player {
     private void sendKeepAlivePacket() {
         ByteBuf buf = Unpooled.buffer();
         VarInt.write(buf, KEEP_ALIVE_OUT);
-        buf.writeLong(Util.getMillis());
+        buf.writeLong(-1);
         info.ctx.writeAndFlush(buf);
     }
 
