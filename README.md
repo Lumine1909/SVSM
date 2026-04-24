@@ -1,4 +1,4 @@
-### Server Vital Signal Maintainer
+### Server Vital Signs Maintainer
 
 Keeping your server and server connections alive while using suspend IDEA breakpoints.
 
