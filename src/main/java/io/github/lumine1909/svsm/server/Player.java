@@ -8,7 +8,6 @@ import net.minecraft.network.VarInt;
 import net.minecraft.network.protocol.common.CommonPacketTypes;
 import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Util;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import java.util.UUID;
@@ -36,7 +35,7 @@ public class Player {
     }
 
     private PlayerInfo info;
-    private volatile long prevKeepAlive = Util.getMillis();
+    private volatile long prevKeepAlive = System.currentTimeMillis();
 
     private Player() {
     }
@@ -52,7 +51,7 @@ public class Player {
             channel.pipeline().remove("svsm_inbound_handler");
         }
         if (channel.pipeline().get("svsm_outbound_handler") != null) {
-            channel.pipeline().remove("svsm_outgbound_handler");
+            channel.pipeline().remove("svsm_outbound_handler");
         }
         channel.pipeline().replace("timeout", "timeout", new ReadTimeoutHandler(Integer.MAX_VALUE));
         channel.pipeline().addBefore("decoder", "svsm_inbound_handler", new ChannelInboundHandlerAdapter() {
@@ -80,7 +79,7 @@ public class Player {
             }
         });
         player.info = new PlayerInfo(sp.getScoreboardName(), sp.getUUID(), channel, channel.pipeline().context("svsm_outbound_handler"));
-        VirtualServer.SERVER.playerConnect(player);
+        VirtualServer.playerConnect(player);
         channel.closeFuture().addListener(f -> player.handleDisconnect());
         return player;
     }
@@ -90,16 +89,16 @@ public class Player {
     }
 
     public void keepAlive() {
-        long curr = Util.getMillis();
+        long curr = System.currentTimeMillis();
         if (curr - prevKeepAlive > KEEP_ALIVE_PERIOD) {
             sendKeepAlivePacket();
-            prevKeepAlive = Util.getMillis();
+            prevKeepAlive = System.currentTimeMillis();
         }
     }
 
     private void handleDisconnect() {
-        if (VirtualServer.SERVER != null) {
-            VirtualServer.SERVER.playerDisconnect(this);
+        if (VirtualServer.isRunning) {
+            VirtualServer.playerDisconnect(this);
         }
     }
 

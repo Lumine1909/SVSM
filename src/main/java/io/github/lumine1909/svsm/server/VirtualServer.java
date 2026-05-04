@@ -2,61 +2,48 @@ package io.github.lumine1909.svsm.server;
 
 import io.netty.handler.timeout.ReadTimeoutHandler;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.*;
 
 public class VirtualServer {
 
-    public static final long NSPT = 1_000_000_000L;
+    private static final Map<String, Player> playerByName = new ConcurrentHashMap<>();
+    public static volatile boolean isRunning = false;
+    private static ScheduledExecutorService executor;
+    private static ScheduledFuture<?> serverTask;
 
-    public static VirtualServer SERVER;
-
-    private final List<Player> players = new CopyOnWriteArrayList<>();
-    private final Map<String, Player> playerByName = new ConcurrentHashMap<>();
-
-    private Thread serverThread;
-    private long currTickNano;
-    private long nextTickNano;
-
-    public static VirtualServer startServer() {
-        SERVER = new VirtualServer();
-        Thread serverThread = new Thread(SERVER::runServer);
-        serverThread.setName("SVSM Thread");
-        serverThread.setDaemon(true);
-        SERVER.serverThread = serverThread;
-        serverThread.start();
-        return SERVER;
-    }
-
-    public static void shutDown() {
-        if (SERVER == null) {
+    public static void start() {
+        if (isRunning) {
             return;
         }
-        SERVER.players.forEach(player -> player.info().channel().pipeline().replace("timeout", "timeout", new ReadTimeoutHandler(30)));
-        SERVER.serverThread.interrupt();
-        SERVER = null;
+        executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "SVSM Thread");
+            thread.setDaemon(true);
+            return thread;
+        });
+        serverTask = executor.scheduleAtFixedRate(() -> playerByName.values().forEach(Player::keepAlive), 1000, 1000, TimeUnit.MILLISECONDS);
+        isRunning = true;
     }
 
-    public void runServer() {
-        while (true) {
-            currTickNano = System.nanoTime();
-            nextTickNano = currTickNano + NSPT;
-            players.forEach(Player::keepAlive);
-            long curr = System.nanoTime();
-            LockSupport.parkNanos(nextTickNano - curr);
+    public static void stop() {
+        isRunning = false;
+        playerByName.values().forEach(player -> player.info().channel().pipeline().replace("timeout", "timeout", new ReadTimeoutHandler(30)));
+        if (serverTask != null) {
+            serverTask.cancel(true);
+            serverTask = null;
         }
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
+        }
+        playerByName.clear();
     }
 
-    public void playerDisconnect(Player player) {
-        players.remove(player);
+    public static void playerDisconnect(Player player) {
         playerByName.remove(player.info().name());
     }
 
-    public void playerConnect(Player player) {
-        players.add(player);
+    public static void playerConnect(Player player) {
         playerByName.put(player.info().name(), player);
     }
 }
