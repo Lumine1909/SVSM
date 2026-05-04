@@ -43,6 +43,9 @@ public class Player {
 
     public static Player createFromBukkit(org.bukkit.entity.Player bukkitPlayer) {
         ServerPlayer sp = ((CraftPlayer) bukkitPlayer).getHandle();
+        if (!sp.getClass().equals(ServerPlayer.class)) {
+            return null;
+        }
         Player player = new Player();
         Channel channel = sp.connection.connection.channel;
         if (channel.pipeline().get("svsm_inbound_handler") != null) {
