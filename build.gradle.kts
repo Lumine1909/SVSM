@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
-    implementation("io.github.lumine1909:reflexion:0.4.0")
+    implementation("io.github.lumine1909:reflexion:0.4.1")
 }
 
 tasks.shadowJar {
