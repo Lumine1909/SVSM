@@ -35,7 +35,7 @@ public class Player {
     }
 
     private PlayerInfo info;
-    private volatile long prevKeepAlive = System.currentTimeMillis();
+    private volatile long prevKeepAlive = milli();
 
     private Player() {
     }
@@ -57,11 +57,12 @@ public class Player {
         channel.pipeline().addBefore("decoder", "svsm_inbound_handler", new ChannelInboundHandlerAdapter() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                if (msg instanceof ByteBuf buf && buf.isReadable()) {
-                    if (VarInt.read(buf) == KEEP_ALIVE_IN && buf.readLong() == -1) {
+                if (msg instanceof ByteBuf buf && buf.readableBytes() > 8) {
+                    int index = buf.readerIndex();
+                    if (VarInt.read(buf) == KEEP_ALIVE_IN && buf.readableBytes() >= 8 && buf.readLong() == -1) {
                         return;
                     }
-                    buf.readerIndex(0);
+                    buf.readerIndex(index);
                 }
                 super.channelRead(ctx, msg);
             }
@@ -69,8 +70,8 @@ public class Player {
         channel.pipeline().addBefore("encoder", "svsm_outbound_handler", new ChannelOutboundHandlerAdapter() {
             @Override
             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                if (msg instanceof ByteBuf buf && buf.isReadable()) {
-                    if (VarInt.read(buf) == KEEP_ALIVE_OUT) {
+                if (msg instanceof ByteBuf buf && buf.readableBytes() > 8) {
+                    if (VarInt.read(buf) == KEEP_ALIVE_OUT && buf.readableBytes() >= 8) {
                         player.prevKeepAlive = buf.readLong();
                     }
                     buf.readerIndex(0);
@@ -84,15 +85,19 @@ public class Player {
         return player;
     }
 
+    private static long milli() {
+        return System.nanoTime() / 1000000;
+    }
+
     public PlayerInfo info() {
         return info;
     }
 
     public void keepAlive() {
-        long curr = System.currentTimeMillis();
+        long curr = milli();
         if (curr - prevKeepAlive > KEEP_ALIVE_PERIOD) {
             sendKeepAlivePacket();
-            prevKeepAlive = System.currentTimeMillis();
+            prevKeepAlive = curr;
         }
     }
 
